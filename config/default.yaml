@@ -1,0 +1,70 @@
+schema_version: xgc2.vrpn_imu_cmd_calibration/profile/v1
+
+topics:
+  cmd: /cmd_vel
+  imu: /imu/data
+  pose: /vrpn_client_node/pose_0/pose
+  phase: /vrpn_imu_cmd_calibration/phase
+  optional:
+    - /joint_states
+    - /scout_status
+    - /tf
+    - /tf_static
+    - /diagnostics
+    - /ugv1/alg/state_estimator/state
+    - /ugv1/alg/unicycle_ugv_controller/status/control_state
+
+# The first stable VRPN pose is the default center. Its mocap coordinates do
+# not need to be [0, 0]. On a physical field where the robot is not initially
+# centered, provide an audited profile instead of weakening this geofence.
+field:
+  width_m: 8.0
+  height_m: 8.0
+  margin_m: 0.75
+  center: initial_vrpn_pose
+
+safety:
+  pose_timeout_s: 0.30
+  imu_timeout_s: 0.25
+  preflight_timeout_s: 8.0
+  stationary_check_s: 2.0
+  stationary_position_span_m: 0.03
+  stationary_yaw_span_deg: 2.0
+  max_run_time_s: 180.0
+  zero_publish_s: 1.0
+  refuse_other_cmd_publishers: true
+
+motion:
+  publish_rate_hz: 30.0
+  start_rest_s: 20.0
+  end_rest_s: 20.0
+  settle_s: 1.5
+  line_distance_m: 1.20
+  line_repeats_per_heading: 2
+  linear_speed_mps: 0.35
+  linear_ramp_s: 0.60
+  slow_yaw_rate_rps: 0.22
+  fast_yaw_rate_rps: 0.40
+  turn_probe_deg: 45.0
+  heading_b_deg: 60.0
+  rotation_tolerance_deg: 1.0
+
+analysis:
+  min_line_displacement_m: 0.65
+  min_heading_separation_deg: 20.0
+  max_t_cm_spread_deg: 3.0
+  min_imu_impulse_mps: 0.05
+  max_t_ci_spread_deg: 15.0
+  max_abs_t_ci_yaw_deg: 10.0
+  min_rotation_deg: 20.0
+  min_gyro_scale: 0.85
+  max_gyro_scale: 1.15
+  max_gyro_scale_spread: 0.08
+
+engineering_priors:
+  accel_noise_std: 0.35
+  gyro_noise_std: 0.03
+  vrpn_position_noise_std: 0.01
+  vrpn_orientation_noise_std: 0.01
+  gyro_bias_random_walk_std: 0.0001
+  accel_bias_random_walk_std: 0.001
