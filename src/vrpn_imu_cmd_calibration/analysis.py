@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import copy
 import math
-from typing import Any, Dict, Iterable, List, Mapping, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -396,8 +396,8 @@ def _estimate_noise_and_walk(
 
 def analyze_samples(
     samples: Mapping[str, Any],
-    settings: Mapping[str, Any] | None = None,
-    priors: Mapping[str, float] | None = None,
+    settings: Optional[Mapping[str, Any]] = None,
+    priors: Optional[Mapping[str, float]] = None,
 ) -> Dict[str, Any]:
     """Estimate priorities 1--6 from bag-adapted arrays.
 
@@ -472,8 +472,8 @@ def _native(value: Any) -> Any:
 
 def build_outputs(
     result: Mapping[str, Any],
-    base_estimator: Mapping[str, Any] | None = None,
-    metadata: Mapping[str, Any] | None = None,
+    base_estimator: Optional[Mapping[str, Any]] = None,
+    metadata: Optional[Mapping[str, Any]] = None,
 ) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
     """Build the evidence asset plus estimator/controller ROS YAML files."""
     runtime_ready = result.get("status") == "PASS"

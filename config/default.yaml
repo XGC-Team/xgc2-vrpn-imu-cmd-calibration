@@ -2,7 +2,7 @@ schema_version: xgc2.vrpn_imu_cmd_calibration/profile/v1
 
 topics:
   cmd: /cmd_vel
-  imu: /imu/data
+  imu: /imu/data_raw
   pose: /vrpn_client_node/pose_0/pose
   phase: /vrpn_imu_cmd_calibration/phase
   optional:

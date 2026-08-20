@@ -9,6 +9,12 @@ catkin_install_python(PROGRAMS
   scripts/analyze_calibration_bag.py
   scripts/install_calibration.py
   scripts/run_calibration.py
+  scripts/simulate_calibration_sensors.py
+  scripts/verify_calibration_result.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(PROGRAMS scripts/run_vehicle_calibration_e2e.sh
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

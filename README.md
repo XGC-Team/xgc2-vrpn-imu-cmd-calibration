@@ -59,13 +59,38 @@ rosrun vrpn_imu_cmd_calibration run_calibration.py
 ```bash
 rosrun vrpn_imu_cmd_calibration run_calibration.py \
   --execute \
-  --base-estimator-yaml /path/to/vehicle-estimator.yaml \
-  --output-root ~/xgc2-calibration-runs
+  --base-estimator-yaml /path/to/vehicle-estimator.yaml
 ```
 
 默认拒绝与其他 `/cmd_vel` publisher 并存；VRPN/IMU stale、越界、超时、信号
 或异常都会持续发布零速并终止。运行目录同时保存 bag、phase、完整 rosparam、
-topic 清单和 manifest，录制结束后自动分析。
+topic 清单和 manifest，录制结束后自动分析。默认输出到
+`~/Documents/XGC/Calibration/vrpn-imu-cmd/`（尊重 `XDG_DOCUMENTS_DIR`），也可用
+`--output-root` 或 `XGC_VRPN_IMU_CMD_OUTPUT_ROOT` 覆盖。
+
+推荐先使用统一 E2E 入口。仿真使用独立 ROS master 和专用话题，不会命中车辆
+`/cmd_vel`；物理预检只订阅传感器并重复发布零速：
+
+```bash
+# 自动闭环：cmd -> 仿真车辆 -> VRPN/IMU -> bag -> 分析 -> YAML -> 安装 dry-run
+rosrun vrpn_imu_cmd_calibration run_vehicle_calibration_e2e.sh simulation
+
+# 实时检查 topic 类型/新鲜度、静止性和 cmd_vel publisher 冲突；不发非零速度
+rosrun vrpn_imu_cmd_calibration run_vehicle_calibration_e2e.sh physical-preflight
+```
+
+实车模式仍要求现场操作员、空的 8×8 米场地、可用物理急停、车辆 ID 和现有
+estimator YAML。只有显式确认后才发非零速度：
+
+```bash
+export XGC_VRPN_IMU_CMD_VEHICLE_ID=scout
+export XGC_VRPN_IMU_CMD_BASE_ESTIMATOR_YAML=/absolute/path/to/vehicle-estimator.yaml
+export XGC_VRPN_IMU_CMD_PHYSICAL_CONFIRMED=YES
+rosrun vrpn_imu_cmd_calibration run_vehicle_calibration_e2e.sh physical
+```
+
+物理 E2E 完成后会验证 bag、围栏、末尾零速、1–6 级质量门和生成 YAML，并对
+估计器/可选控制器目标执行安装 dry-run；不会自动覆盖运行配置。
 
 已有 bag 可单独分析：
 
@@ -112,4 +137,14 @@ roslaunch vrpn_imu_cmd_calibration calibrated_ugv_stack.launch \
 
 ```bash
 PYTHONPATH=src python3 -m unittest discover -s test -v
+scripts/run_vehicle_calibration_e2e.sh simulation
 ```
+
+## APT
+
+独立包名为 `ros-noetic-xgc2-vrpn-imu-cmd-calibration`。它只硬依赖完成激励、
+录包、分析和 YAML 生成所需的 ROS/Python 运行库；估计器与控制器是生成结果的
+可选消费者，不进入 Debian `Depends`。
+
+生产发布只通过 `xgc2-devops` 的 `release-orchestrator` 复用 exact-SHA push CI
+产物；产品仓自身不直接修改 APT 索引。

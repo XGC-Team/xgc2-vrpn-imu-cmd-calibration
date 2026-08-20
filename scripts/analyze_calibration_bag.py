@@ -182,7 +182,7 @@ def main(argv=None):
     try:
         profile = load_yaml(args.profile)
         topics = dict(profile.get("topics", {}))
-        topics["imu"] = args.imu_topic or topics.get("imu", "/imu/data")
+        topics["imu"] = args.imu_topic or topics.get("imu", "/imu/data_raw")
         topics["pose"] = args.pose_topic or topics.get("pose", "/vrpn_client_node/pose_0/pose")
         topics["cmd"] = args.cmd_topic or topics.get("cmd", "/cmd_vel")
         topics["phase"] = args.phase_topic or topics.get(

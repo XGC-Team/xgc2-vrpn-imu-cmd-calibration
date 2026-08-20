@@ -24,6 +24,8 @@ try:
 except ImportError as exc:
     raise SystemExit("ROS1 Python modules are required; source Noetic first") from exc
 
+from vrpn_imu_cmd_calibration.profile import estimate_nominal_duration, validate_profile
+
 
 def wrap(angle):
     return (float(angle) + math.pi) % (2.0 * math.pi) - math.pi
@@ -57,7 +59,30 @@ def load_profile(path):
         profile = yaml.safe_load(stream)
     if not isinstance(profile, dict):
         raise ValueError("profile must contain a YAML mapping")
+    validate_profile(profile)
     return profile
+
+
+def default_output_root():
+    override = os.environ.get("XGC_VRPN_IMU_CMD_OUTPUT_ROOT")
+    if override:
+        return str(Path(os.path.expandvars(override)).expanduser())
+    documents = os.environ.get("XDG_DOCUMENTS_DIR")
+    if not documents:
+        try:
+            documents = subprocess.check_output(
+                ["xdg-user-dir", "DOCUMENTS"], text=True, stderr=subprocess.DEVNULL
+            ).strip()
+        except (OSError, subprocess.CalledProcessError):
+            documents = ""
+    if not documents:
+        documents = str(Path.home() / "Documents")
+    return str(
+        Path(os.path.expandvars(documents)).expanduser()
+        / "XGC"
+        / "Calibration"
+        / "vrpn-imu-cmd"
+    )
 
 
 def atomic_yaml(path, value):
@@ -427,7 +452,7 @@ class CalibrationRunner:
             command.extend(["--base-estimator-yaml", self.args.base_estimator_yaml])
         return subprocess.run(command, check=False).returncode
 
-    def run(self):
+    def run(self, preflight_only=False):
         rospy.init_node("vrpn_imu_cmd_calibration", anonymous=False, disable_signals=True)
         self.cmd_pub = rospy.Publisher(self.topics["cmd"], Twist, queue_size=1)
         self.phase_pub = rospy.Publisher(self.topics["phase"], String, queue_size=10, latch=True)
@@ -437,6 +462,14 @@ class CalibrationRunner:
         conflicts = self.other_cmd_publishers()
         if conflicts and bool(self.safety.get("refuse_other_cmd_publishers", True)) and not self.args.allow_other_cmd_publishers:
             raise RuntimeError("other cmd_vel publishers are active: %s" % ", ".join(conflicts))
+        if preflight_only:
+            rospy.loginfo(
+                "physical preflight PASS: center=(%.3f, %.3f), fresh stable VRPN/IMU, no cmd_vel conflict",
+                self.center[0],
+                self.center[1],
+            )
+            self.publish_zero()
+            return 0
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         self.output_dir = Path(self.args.output_root).expanduser().resolve() / ("vrpn-imu-cmd-" + timestamp)
         self.output_dir.mkdir(parents=True, exist_ok=False)
@@ -460,21 +493,11 @@ class CalibrationRunner:
 def describe_profile(profile):
     motion = profile["motion"]
     repeats = int(motion["line_repeats_per_heading"])
-    nominal_line_s = float(motion["line_distance_m"]) / float(motion["linear_speed_mps"]) + 1.0
-    nominal_turn_s = (
-        4.0 * math.radians(float(motion["turn_probe_deg"]))
-        / ((float(motion["slow_yaw_rate_rps"]) + float(motion["fast_yaw_rate_rps"])) * 0.5)
-        + 2.0 * math.radians(float(motion["heading_b_deg"])) / float(motion["slow_yaw_rate_rps"])
+    nominal = estimate_nominal_duration(profile)
+    print(
+        "profile: %.1fx%.1f m, center=first stable VRPN pose"
+        % (profile["field"]["width_m"], profile["field"]["height_m"])
     )
-    movement_count = 4 * repeats + 6
-    nominal = (
-        float(motion["start_rest_s"])
-        + float(motion["end_rest_s"])
-        + 4 * repeats * nominal_line_s
-        + nominal_turn_s
-        + movement_count * float(motion["settle_s"])
-    )
-    print("profile: 8x8 m, center=first stable VRPN pose")
     print("line legs: %d at %.2f m, headings separated by %.1f deg" % (4 * repeats, motion["line_distance_m"], motion["heading_b_deg"]))
     print("rotations: both signs at %.2f and %.2f rad/s" % (motion["slow_yaw_rate_rps"], motion["fast_yaw_rate_rps"]))
     print("nominal duration: %.0f s" % nominal)
@@ -483,9 +506,14 @@ def describe_profile(profile):
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", default=default_profile_path())
-    parser.add_argument("--output-root", default="~/xgc2-calibration-runs")
+    parser.add_argument("--output-root", default=default_output_root())
     parser.add_argument("--base-estimator-yaml")
     parser.add_argument("--execute", action="store_true", help="required before publishing nonzero cmd_vel")
+    parser.add_argument(
+        "--preflight-only",
+        action="store_true",
+        help="check live stable inputs and cmd_vel ownership, publish zero only, then exit",
+    )
     parser.add_argument("--allow-other-cmd-publishers", action="store_true")
     parser.add_argument("--no-analyze", action="store_true")
     return parser.parse_args(rospy.myargv(argv=argv)[1:] if argv is not None else rospy.myargv()[1:])
@@ -499,7 +527,7 @@ def main(argv=None):
         print("invalid profile: %s" % exc, file=sys.stderr)
         return 2
     describe_profile(profile)
-    if not args.execute:
+    if not args.execute and not args.preflight_only:
         print("dry run only; add --execute after clearing the field and checking the physical E-stop")
         return 0
 
@@ -507,7 +535,7 @@ def main(argv=None):
     signal.signal(signal.SIGINT, runner.handle_signal)
     signal.signal(signal.SIGTERM, runner.handle_signal)
     try:
-        return runner.run()
+        return runner.run(preflight_only=args.preflight_only)
     except (OSError, RuntimeError, ValueError) as exc:
         runner.abort_reason = runner.abort_reason or str(exc)
         print("calibration run aborted: %s" % exc, file=sys.stderr)

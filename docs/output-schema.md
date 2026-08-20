@@ -22,3 +22,8 @@ asset fails and `extrinsic_verified` remains false.
 The controller does not consume sensor calibration values. It consumes the
 estimator's `C`-frame state on `alg/state_estimator/state`, so the generated
 controller overlay only prevents the unsafe `vrpn_direct` bypass.
+
+The default physical artifact root is the user's
+`Documents/XGC/Calibration/vrpn-imu-cmd/` directory. A vehicle E2E wrapper may
+add the vehicle ID as one more directory level. Simulation uses an isolated
+temporary directory and prints its exact retained artifact path.

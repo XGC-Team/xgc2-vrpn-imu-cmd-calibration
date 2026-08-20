@@ -3,7 +3,10 @@ __pycache__/
 *.bag
 *.bag.active
 .catkin_tools/
+.ci/
+.work/
 build/
+debs/
 devel/
 logs/
 results/

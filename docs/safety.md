@@ -18,3 +18,13 @@ Motion is allowed only when all checks hold:
 The software geofence is a last line of defense, not collision avoidance. It
 does not perceive people or obstacles and cannot know that the initial pose is
 the physical center.
+
+`run_vehicle_calibration_e2e.sh physical-preflight` exercises the exact live
+freshness, stationary, and publisher-ownership gates while publishing zero
+velocity only. The `physical` mode additionally requires
+`XGC_VRPN_IMU_CMD_PHYSICAL_CONFIRMED=YES` and an existing vehicle estimator
+YAML. The confirmation is an operator assertion, not an obstacle sensor.
+
+The simulation E2E uses a fresh local ROS master, a unique temporary artifact
+directory, and `/vrpn_imu_cmd_calibration/e2e/*` topics. It cannot command the
+normal vehicle topic even when another ROS setup is present.

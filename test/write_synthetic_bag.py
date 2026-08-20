@@ -36,7 +36,7 @@ def main():
         message = Imu()
         message.linear_acceleration.x, message.linear_acceleration.y, message.linear_acceleration.z = row[1:4]
         message.angular_velocity.x, message.angular_velocity.y, message.angular_velocity.z = row[4:7]
-        events.append((row[0], "/imu/data", message))
+        events.append((row[0], "/imu/data_raw", message))
     for row in samples["pose"]:
         message = PoseStamped()
         message.pose.position.x, message.pose.position.y, message.pose.position.z = row[1:4]

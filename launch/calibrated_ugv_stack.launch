@@ -6,7 +6,7 @@
   <arg name="estimator_config"/>
   <arg name="controller_config"
        default="$(find unicycle_ugv_controller)/config/unicycle_ugv_controller.yaml"/>
-  <arg name="imu_topic" default="/imu/data"/>
+  <arg name="imu_topic" default="/imu/data_raw"/>
   <arg name="pose_topic" default="/vrpn_client_node/pose_0/pose"/>
 
   <include file="$(find estimator_vrpn_px4_rotor_state)/launch/vrpn_ugv_rigid_state_estimator.launch">

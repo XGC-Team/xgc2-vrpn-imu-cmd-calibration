@@ -1,0 +1,64 @@
+schema: xgc2.product.v1
+id: xgc2-vrpn-imu-cmd-calibration-ros1
+name: XGC2 ROS1 VRPN IMU Cmd Calibration
+version: 0.2.0-1
+kind: ros1-apt
+summary: Safe short-run cmd_vel excitation, rosbag evidence, and engineering
+  parameter identification for planar UGV VRPN and IMU state estimation.
+ros:
+  distro: noetic
+  workspace: catkin
+  packages:
+  - vrpn_imu_cmd_calibration
+apt:
+  distribution: focal
+  install:
+  - ros-noetic-xgc2-vrpn-imu-cmd-calibration
+  packages:
+  - ros-noetic-xgc2-vrpn-imu-cmd-calibration
+  package_architectures:
+    ros-noetic-xgc2-vrpn-imu-cmd-calibration:
+    - amd64
+    - arm64
+  depends:
+  - python3-numpy
+  - python3-rospkg
+  - python3-yaml
+  - ros-noetic-geometry-msgs
+  - ros-noetic-rosbag
+  - ros-noetic-rosbash
+  - ros-noetic-rosgraph
+  - ros-noetic-roslaunch
+  - ros-noetic-rospack
+  - ros-noetic-rospy
+  - ros-noetic-sensor-msgs
+  - ros-noetic-std-msgs
+usage:
+  install: 'sudo apt update
+
+    sudo apt install ros-noetic-xgc2-vrpn-imu-cmd-calibration
+
+    '
+  smoke_test: 'rosrun vrpn_imu_cmd_calibration run_calibration.py
+
+    rosrun vrpn_imu_cmd_calibration run_vehicle_calibration_e2e.sh simulation
+
+    '
+  notes: 'The package owns calibration excitation, evidence, analysis, and YAML
+    generation. Estimator and controller packages are optional runtime consumers
+    and are deliberately not Debian dependencies. Physical motion remains gated
+    by an operator, an empty field, a working E-stop, and explicit confirmation.
+
+    '
+ownership:
+  paths:
+  - /opt/ros/noetic/share/vrpn_imu_cmd_calibration
+  - /opt/ros/noetic/lib/vrpn_imu_cmd_calibration
+  - /opt/ros/noetic/lib/python3/dist-packages/vrpn_imu_cmd_calibration
+release:
+  repository: XGC-Team/xgc2-vrpn-imu-cmd-calibration
+  ref: main
+  workflow: release.yml
+  ci_workflow: ci.yml
+  apt_versions:
+    focal: 0.2.0-1
