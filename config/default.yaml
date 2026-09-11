@@ -12,7 +12,7 @@ topics:
     - /tf_static
     - /diagnostics
     - /ugv1/alg/state_estimator/state
-    - /ugv1/alg/unicycle_ugv_controller/status/control_state
+    - /ugv1/custom/statustext
 
 # The first stable VRPN pose is the default center. Its mocap coordinates do
 # not need to be [0, 0]. On a physical field where the robot is not initially
