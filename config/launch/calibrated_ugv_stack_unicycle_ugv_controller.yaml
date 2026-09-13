@@ -1,0 +1,63 @@
+# Complete configuration for this launch composition.
+active_analytic_topic: alg/unicycle_reference_trajectory/active/analytic
+active_polynomial_topic: alg/unicycle_reference_trajectory/active/polynomial
+active_sampled_topic: alg/unicycle_reference_trajectory/active/sampled
+auto_start_tracking: false
+chassis:
+  max_linear_speed: 1.05
+  max_yaw_rate: 1.05
+cmd_vel_topic: cmd_vel
+command_publish_rate_hz: 30.0
+control_rate_hz: 500.0
+fence:
+  x_max: 20.0
+  x_min: -20.0
+  y_max: 20.0
+  y_min: -20.0
+filter:
+  dt_max: 0.2
+  dt_min: 0.0001
+  wn: 31.41592653589793
+  zeta: 0.7071067811865476
+flatness:
+  kp: 6.0
+  kv: 4.0
+  lateral_damping: 1.0
+  lateral_response_length: 0.8
+  v_eps: 0.15
+idle_cmd_rate_hz: 5.0
+limits:
+  max_angular_acceleration: 3.0
+  max_angular_speed: 2.5
+  max_linear_acceleration: 2.0
+  max_linear_speed: 3.0
+  min_linear_speed: -1.5
+nmpc:
+  control_period: 0.1
+  prediction_horizon: 1.0
+  request_rate_hz: 100.0
+  result_timeout: 0.1
+  solve_timeout: 0.05
+  weights:
+    accel: 0.4
+    angular_accel: 1.0
+    omega: 10.0
+    position_x: 20.0
+    position_y: 20.0
+    speed: 4.0
+    terminal_position_x: 60.0
+    terminal_position_y: 60.0
+    terminal_speed: 10.0
+    terminal_yaw: 20.0
+    yaw: 8.0
+platform_pose_topic: pose
+pva_reference_topic: alg/reference/pva
+queue_size: 10
+reset:
+  timeout: 90.0
+reset_pose_topic: reset_pose
+state_estimate_topic: alg/state_estimator/state
+state_source: state_estimator
+state_timeout: 0.2
+status_publish_rate_hz: 5.0
+tracking_strategy: nmpc

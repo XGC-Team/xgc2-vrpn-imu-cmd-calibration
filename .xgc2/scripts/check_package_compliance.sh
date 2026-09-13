@@ -18,6 +18,10 @@ PYTHONPYCACHEPREFIX="${TMPDIR:-/tmp}/xgc2-vrpn-imu-cmd-pycache" python3 -m py_co
 python3 - <<'PY'
 import pathlib
 import xml.etree.ElementTree as ET
+import yaml
+
+metadata = yaml.safe_load(pathlib.Path(".xgc2/product.yml").read_text())
+assert metadata["release"]["apt_versions"]["focal"] == metadata["version"]
 
 root = ET.parse("package.xml").getroot()
 assert root.findtext("name") == "vrpn_imu_cmd_calibration"
@@ -27,9 +31,7 @@ assert pathlib.Path("config/default.yaml").read_text(encoding="utf-8").startswit
 )
 PY
 
-test "$(awk '/^version:/ {print $2; exit}' .xgc2/product.yml)" = "0.2.0-1"
 grep -q '^id: xgc2-vrpn-imu-cmd-calibration-ros1$' .xgc2/product.yml
-grep -q '^    focal: 0.2.0-1$' .xgc2/product.yml
 grep -q '^  imu: /imu/data_raw$' config/default.yaml
 grep -q 'install(PROGRAMS scripts/run_vehicle_calibration_e2e.sh' CMakeLists.txt
 grep -q 'catkin_install_python(PROGRAMS' CMakeLists.txt
